@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+*.secret.json
+private/
+work/
+results/

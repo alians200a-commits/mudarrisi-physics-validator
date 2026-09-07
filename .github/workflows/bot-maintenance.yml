@@ -1,0 +1,84 @@
+name: bot-maintenance
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  apply-patch:
+    if: ${{ github.event.issue.title == '[BOT-PATCH]' && github.actor == github.repository_owner }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Decode and apply owner patch
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64, json, os, pathlib
+          body = os.environ['ISSUE_BODY'].strip()
+          marker = 'PATCH_B64:'
+          if marker not in body:
+              raise SystemExit('missing PATCH_B64 marker')
+          payload = body.split(marker, 1)[1].strip().split()[0]
+          data = json.loads(base64.b64decode(payload).decode('utf-8'))
+          files = data.get('files')
+          if not isinstance(files, list) or not files:
+              raise SystemExit('patch files[] missing')
+          root = pathlib.Path('.').resolve()
+          for item in files:
+              path = item.get('path')
+              content_b64 = item.get('content_b64')
+              delete = item.get('delete', False)
+              if not isinstance(path, str) or not path or path.startswith('/') or '..' in pathlib.PurePosixPath(path).parts or path.startswith('.git/'):
+                  raise SystemExit(f'unsafe path: {path!r}')
+              dest = (root / path).resolve()
+              if root not in dest.parents and dest != root:
+                  raise SystemExit(f'path escaped repo: {path}')
+              if delete:
+                  if dest.exists() and dest.is_file():
+                      dest.unlink()
+                  continue
+              if not isinstance(content_b64, str):
+                  raise SystemExit(f'missing content_b64 for {path}')
+              dest.parent.mkdir(parents=True, exist_ok=True)
+              dest.write_bytes(base64.b64decode(content_b64))
+          PY
+
+      - name: Test before commit
+        run: python -m unittest discover -s tests -v
+
+      - name: Commit as GitHub bot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No changes.'
+          else
+            git commit -m 'Apply automated validator patch'
+            git push origin HEAD:main
+          fi
+
+      - name: Redact and close patch issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" \
+            -f body='Automated patch processed; payload redacted.' \
+            -f state='closed' >/dev/null

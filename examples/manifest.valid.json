@@ -1,0 +1,6 @@
+{
+  "originals": [
+    {"id": "OQ-01", "status": "active", "literal_required": true, "stem": "ما الخاصية الفيزيائية للمادة؟", "representation_question_ids": ["Q-01"]},
+    {"id": "OQ-02", "status": "active", "literal_required": false, "representation_question_ids": ["Q-02"]}
+  ]
+}

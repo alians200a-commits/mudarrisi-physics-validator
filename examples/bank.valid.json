@@ -1,0 +1,21 @@
+{
+  "batch": {"number": 1, "is_final": true},
+  "questions": [
+    {
+      "id": "Q-01",
+      "type": "mcq",
+      "question": "ما الخاصية الفيزيائية للمادة؟",
+      "options": ["أ", "ب", "ج", "د"],
+      "correctAnswer": 0,
+      "explanations": ["تفسير أ", "تفسير ب", "تفسير ج", "تفسير د"]
+    },
+    {
+      "id": "Q-02",
+      "type": "true_false",
+      "question": "للمادة كتلة وتشغل حيزًا من الفراغ.",
+      "options": ["صح", "خطأ"],
+      "correctAnswer": 0,
+      "explanations": ["العبارة تطابق الهدف العلمي.", "نفي العبارة يغيّر المعنى العلمي."]
+    }
+  ]
+}

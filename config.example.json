@@ -1,0 +1,15 @@
+{
+  "mcq_option_count": 4,
+  "tf_options": ["صح", "خطأ"],
+  "batch_size": 30,
+  "require_question_id": true,
+  "require_explanations": true,
+  "require_source_evidence_for_pass": true,
+  "require_semantic_review_for_pass": true,
+  "forbidden_reference_phrases": [
+    "في الجدول", "وفق الجدول", "في الشكل", "وفق الشكل",
+    "في الصورة", "وفق الصورة", "في المصدر", "وفق المصدر",
+    "في الكتاب", "وفق الكتاب", "في الملزمة", "وفق الملزمة",
+    "كما موضح", "كما هو موضح"
+  ]
+}
